@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Naruto Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Nunito:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+/* ── LIGHT NARUTO THEME ── */
+:root{
+  --orange:#E8520A;--orange2:#FF7A2B;--orange3:#FFB347;--orange4:#FFE0B2;
+  --dark:#1a0a00;--mid:#6B3000;--leaf:#2d6a2d;--leaf2:#4CAF50;
+  --bg:#FFF8F0;--bg2:#FFF3E0;--bg3:#FFE0B2;
+  --card:#FFFFFF;--card2:#FFF8F0;
+  --border:rgba(232,82,10,.18);--border2:rgba(232,82,10,.35);
+  --txt:#1a0a00;--muted:#8B5500;--muted2:#CC7722;
+  --shadow:0 2px 12px rgba(232,82,10,.12),0 4px 24px rgba(0,0,0,.08);
+  --shadow2:0 4px 20px rgba(232,82,10,.2),0 8px 32px rgba(0,0,0,.1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+
+/* Subtle leaf pattern background */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='16' fill='none' stroke='%23E8520A' stroke-width='1.5' opacity='0.06'/%3E%3Ccircle cx='40' cy='40' r='10' fill='none' stroke='%23E8520A' stroke-width='1' opacity='0.04'/%3E%3Cline x1='40' y1='24' x2='40' y2='56' stroke='%23E8520A' stroke-width='1' opacity='0.04'/%3E%3Cline x1='24' y1='40' x2='56' y2='40' stroke='%23E8520A' stroke-width='1' opacity='0.04'/%3E%3C/svg%3E");
+  background-size:80px 80px;
+}
+
+.app{position:relative;z-index:1;min-height:100vh}
+
+/* ── HEADER BAR ── */
+.header{
+  background:linear-gradient(135deg,var(--dark) 0%,#3d1000 50%,var(--dark) 100%);
+  padding:10px 20px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 12px rgba(0,0,0,.3);
+}
+.header-left{display:flex;align-items:center;gap:10px}
+.header-leaf{font-size:20px;opacity:.9}
+.header-title{font-family:'Cinzel',serif;font-size:clamp(16px,4vw,22px);font-weight:900;
+  letter-spacing:4px;color:var(--orange3);
+  text-shadow:0 0 20px rgba(255,179,71,.4)}
+.header-right{font-family:'Cinzel',serif;font-size:10px;color:rgba(255,179,71,.6);
+  letter-spacing:2px;text-align:right;line-height:1.4}
+.header-right b{color:var(--orange3);font-size:11px}
+
+.screen{display:none;padding:20px 16px 80px;max-width:800px;margin:0 auto;animation:fadeUp .3s ease}
+.screen.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── HOME ── */
+.home-hero{text-align:center;padding:24px 0 20px}
+.hero-title{font-family:'Cinzel',serif;font-size:clamp(32px,7vw,58px);font-weight:900;
+  letter-spacing:4px;line-height:1;color:var(--orange);
+  text-shadow:2px 2px 0 rgba(232,82,10,.2);margin-bottom:6px}
+.hero-sub{font-size:12px;color:var(--muted);letter-spacing:4px;text-transform:uppercase;
+  display:flex;align-items:center;justify-content:center;gap:8px}
+.hero-sub::before,.hero-sub::after{content:'🍃';font-size:14px}
+
+/* Stats row */
+.stats-row{display:flex;gap:10px;justify-content:center;margin:18px 0;flex-wrap:wrap}
+.stat-chip{padding:6px 14px;background:var(--card);border:1.5px solid var(--border2);
+  border-radius:100px;font-size:11px;font-weight:700;color:var(--orange);
+  display:flex;align-items:center;gap:5px}
+.stat-chip span{font-size:16px}
+
+.rank-title{font-family:'Cinzel',serif;font-size:11px;letter-spacing:4px;color:var(--muted);
+  text-transform:uppercase;text-align:center;margin:0 0 14px;
+  display:flex;align-items:center;justify-content:center;gap:8px}
+.rank-title::before,.rank-title::after{content:'';flex:1;max-width:60px;height:1px;background:var(--border2)}
+
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:680px;margin:0 auto}
+.mode-card{
+  background:var(--card);border:2px solid var(--border);border-radius:16px;
+  padding:18px 12px 14px;text-align:center;cursor:pointer;
+  transition:transform .15s,border-color .2s,box-shadow .2s;
+  position:relative;overflow:hidden;box-shadow:var(--shadow)
+}
+.mode-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--ac);border-radius:16px 16px 0 0}
+.mode-card::after{
+  content:attr(data-kanji);position:absolute;right:8px;bottom:-8px;
+  font-family:'Cinzel',serif;font-size:52px;font-weight:900;line-height:1;
+  color:rgba(232,82,10,.05);pointer-events:none
+}
+.mode-card:hover{transform:translateY(-4px);border-color:var(--ac);box-shadow:var(--shadow2)}
+.mode-card[data-mode="easy"]{--ac:#27ae60}
+.mode-card[data-mode="medium"]{--ac:var(--orange)}
+.mode-card[data-mode="hard"]{--ac:#8e44ad}
+.mc-emoji{font-size:28px;display:block;margin-bottom:6px}
+.mc-rank{font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:2px}
+.mc-name{font-family:'Cinzel',serif;font-size:19px;font-weight:700;color:var(--ac);letter-spacing:1px;margin-bottom:4px}
+.mc-desc{font-size:10px;color:var(--muted2);line-height:1.6;margin-bottom:10px}
+.mc-count{display:inline-block;padding:3px 10px;background:var(--ac);color:#fff;
+  border-radius:100px;font-size:10px;font-weight:700;letter-spacing:1px}
+
+.rules-box{
+  max-width:460px;margin:20px auto 0;padding:14px 18px;
+  background:var(--card);border:1.5px solid var(--border);border-radius:12px;
+  font-size:12px;color:var(--muted);line-height:1.9;text-align:center;
+  box-shadow:var(--shadow)
+}
+.rules-box b{color:var(--orange)}
+
+/* ── FOOTER ── */
+.page-footer{
+  position:fixed;bottom:0;left:0;right:0;
+  background:linear-gradient(135deg,var(--dark),#3d1000 50%,var(--dark));
+  padding:8px 20px;display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 -2px 12px rgba(0,0,0,.2);
+}
+.footer-leaf{font-size:14px;opacity:.6}
+.footer-txt{font-family:'Cinzel',serif;font-size:11px;color:rgba(255,179,71,.6);
+  letter-spacing:2px}
+.footer-txt b{color:var(--orange3)}
+
+/* ── QUIZ ── */
+.quiz-top{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.q-chip{padding:5px 14px;border-radius:100px;font-size:12px;font-weight:700;
+  background:var(--card);border:1.5px solid var(--border2);color:var(--txt)}
+.q-chip b{color:var(--orange)}
+.sc-chip{background:linear-gradient(90deg,var(--orange),var(--orange2));color:#fff;border:none}
+.diff-chip{font-size:10px;letter-spacing:1px;font-family:'Cinzel',serif;text-transform:uppercase}
+.diff-easy{background:#e8f5e9;color:#27ae60;border-color:#27ae60}
+.diff-medium{background:#fff3e0;color:var(--orange);border-color:var(--orange)}
+.diff-hard{background:#f3e5f5;color:#8e44ad;border-color:#8e44ad}
+.quit-btn{margin-left:auto;background:var(--card);border:1.5px solid var(--border2);
+  border-radius:100px;padding:5px 14px;font-size:11px;font-weight:700;cursor:pointer;
+  color:var(--muted);font-family:inherit;transition:all .15s}
+.quit-btn:hover{color:#c0392b;border-color:#c0392b;background:#fff5f5}
+
+.prog-wrap{height:4px;background:var(--bg3);border-radius:10px;margin-bottom:14px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--orange),var(--orange3));transition:width .4s ease}
+
+/* Character card */
+.char-card{
+  background:var(--card);border:2px solid var(--border2);border-radius:16px;
+  padding:16px;margin-bottom:12px;text-align:center;position:relative;overflow:hidden;
+  box-shadow:var(--shadow2)
+}
+/* Leaf symbol watermark */
+.char-card::before{
+  content:'🍃';position:absolute;right:-5px;bottom:-5px;font-size:120px;
+  opacity:.035;pointer-events:none;transform:rotate(-15deg)
+}
+/* Orange top border */
+.char-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,transparent,var(--orange) 30%,var(--orange3) 50%,var(--orange) 70%,transparent)}
+.card-lbl{font-family:'Cinzel',serif;font-size:9px;letter-spacing:4px;color:var(--muted);
+  text-transform:uppercase;margin-bottom:10px}
+
+/* Portrait circle */
+.portrait{width:180px;height:180px;margin:0 auto 10px;border-radius:50%;
+  position:relative;background:var(--bg2)}
+.portrait-outer{width:100%;height:100%;border-radius:50%;
+  background:linear-gradient(135deg,var(--orange),var(--orange3),var(--orange));
+  padding:3px;animation:ring-anim 4s linear infinite}
+@keyframes ring-anim{to{background-position:200% center}}
+.portrait-inner{width:100%;height:100%;border-radius:50%;overflow:hidden;
+  background:var(--bg2);border:3px solid #fff;
+  box-shadow:0 0 0 2px rgba(232,82,10,.3),0 4px 20px rgba(232,82,10,.15)}
+.nimg{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .3s}
+.nimg.hide{opacity:0}
+.nimg.show{animation:zin .4s cubic-bezier(.4,1.3,.6,1)}
+@keyframes zin{from{transform:scale(.78);opacity:0}to{transform:scale(1);opacity:1}}
+.spin{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.spin::after{content:'';width:40px;height:40px;border:3px solid rgba(232,82,10,.15);
+  border-top:3px solid var(--orange);border-radius:50%;animation:s .8s linear infinite}
+.spin.off{display:none}
+@keyframes s{to{transform:rotate(360deg)}}
+.q-txt{font-family:'Cinzel',serif;font-size:12px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+
+/* Timer */
+.timer{position:relative;height:36px;margin-bottom:10px;border-radius:100px;overflow:hidden;
+  background:var(--bg2);border:1.5px solid var(--border2)}
+.t-fill{position:absolute;top:0;left:0;bottom:0;border-radius:100px;
+  background:linear-gradient(90deg,#27ae60,#4CAF50);transition:width .1s linear,background .3s}
+.t-fill.warn{background:linear-gradient(90deg,#e67e22,#f39c12)}
+.t-fill.danger{background:linear-gradient(90deg,#c0392b,#e74c3c);animation:pulse .35s ease infinite alternate}
+@keyframes pulse{from{opacity:.7}to{opacity:1}}
+.t-txt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'Cinzel',serif;font-size:14px;font-weight:700;letter-spacing:2px;
+  color:var(--txt);text-shadow:0 1px 3px rgba(255,255,255,.8);pointer-events:none;z-index:1}
+
+/* Answer options */
+.opts{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.opt{
+  background:var(--card);border:2px solid var(--border);border-radius:12px;
+  padding:12px 12px 12px 32px;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;
+  color:var(--txt);cursor:pointer;text-align:left;min-height:50px;
+  transition:transform .12s,border-color .15s,background .12s,box-shadow .12s;
+  position:relative;line-height:1.3;box-shadow:var(--shadow)
+}
+.opt::before{content:attr(data-k);position:absolute;left:10px;top:50%;transform:translateY(-50%);
+  width:18px;height:18px;border-radius:50%;background:var(--bg3);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Cinzel',serif;font-size:10px;color:var(--orange);font-weight:700;
+  line-height:18px;text-align:center}
+.opt:hover:not(:disabled){transform:translateX(4px);border-color:var(--orange2);
+  background:var(--bg2);box-shadow:var(--shadow2)}
+.opt:disabled{cursor:default}
+.opt.cor{background:#e8f5e9;border-color:#27ae60;color:#155724;animation:ca .5s ease}
+.opt.wrg{background:#fce4ec;border-color:#e74c3c;color:#7b1a1a;animation:wa .5s ease}
+@keyframes ca{0%,100%{transform:translateX(0)}30%{transform:translateX(8px)}60%{transform:translateX(-2px)}}
+@keyframes wa{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+
+/* ── RESULT ── */
+.res-wrap{max-width:400px;margin:28px auto 0}
+.res-card{
+  background:var(--card);border:2px solid var(--border2);border-radius:20px;
+  padding:28px 22px;text-align:center;box-shadow:var(--shadow2);position:relative;overflow:hidden
+}
+.res-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,var(--orange),var(--orange3),var(--orange))}
+.res-title{font-family:'Cinzel',serif;font-size:20px;font-weight:900;letter-spacing:3px;
+  color:var(--orange);text-transform:uppercase;margin-bottom:4px}
+.res-badge{width:90px;height:90px;border-radius:50%;margin:14px auto;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Cinzel',serif;font-size:50px;font-weight:900;
+  border:4px solid var(--orange);background:var(--bg2);color:var(--orange);
+  box-shadow:0 0 0 2px rgba(232,82,10,.15),var(--shadow2)}
+.res-rank{font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--orange);
+  margin-bottom:12px;letter-spacing:2px}
+.res-score{font-family:'Cinzel',serif;font-size:38px;font-weight:900;letter-spacing:3px;color:var(--txt);line-height:1}
+.res-score em{color:var(--orange);font-style:normal}
+.res-pct{font-size:13px;color:var(--muted);margin:4px 0 22px;letter-spacing:1px}
+.res-btns{display:flex;gap:10px;justify-content:center}
+.rb{border:none;border-radius:100px;padding:11px 22px;font-family:'Cinzel',serif;
+  font-size:12px;font-weight:700;letter-spacing:2px;cursor:pointer;
+  transition:transform .12s;text-transform:uppercase}
+.rb-p{background:linear-gradient(90deg,var(--orange),var(--orange2));color:#fff;
+  box-shadow:0 4px 14px rgba(232,82,10,.3)}
+.rb-s{background:var(--bg2);color:var(--txt);border:2px solid var(--border2)}
+.rb:hover{transform:translateY(-2px)}.rb:active{transform:translateY(1px)}
+
+/* Leaf decorations (scattered) */
+.leaf-dec{position:fixed;pointer-events:none;z-index:0;font-size:14px;opacity:.07;
+  animation:float 6s ease-in-out infinite alternate}
+@keyframes float{from{transform:translateY(0) rotate(0deg)}to{transform:translateY(-10px) rotate(10deg)}}
+
+@media(max-width:560px){
+  .screen{padding:14px 10px 70px}.modes{grid-template-columns:1fr;gap:10px}
+  .hero-title{font-size:36px}.opts{grid-template-columns:1fr}
+  .portrait{width:150px;height:150px}.modes{max-width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- Scattered leaf decorations -->
+<div class="leaf-dec" style="top:15%;left:5%;animation-delay:0s">🍃</div>
+<div class="leaf-dec" style="top:40%;right:4%;animation-delay:1s;font-size:18px">🍃</div>
+<div class="leaf-dec" style="top:70%;left:3%;animation-delay:2s">🍃</div>
+<div class="leaf-dec" style="top:25%;right:3%;animation-delay:3s;font-size:12px">🍃</div>
+<div class="leaf-dec" style="top:80%;right:5%;animation-delay:.5s">🍃</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <span class="header-leaf">🍃</span>
+    <div class="header-title">NARUTO QUIZ</div>
+    <span class="header-leaf">🍃</span>
+  </div>
+  <div class="header-right">
+    Made by<br><b>Alakshit Pradhan</b>
+  </div>
+</div>
+<div class="app">
+
+<!-- HOME -->
+<section id="sHome" class="screen active">
+  <div class="home-hero">
+    <div class="hero-title">WHO'S THAT NINJA?</div>
+    <div class="hero-sub">Test Your Naruto Knowledge</div>
+  </div>
+
+  <div class="rank-title">Choose Your Ninja Rank</div>
+
+  <div class="modes" id="modesGrid">
+    <button class="mode-card" data-mode="easy" data-kanji="下" type="button">
+      <span class="mc-emoji">🌿</span>
+      <div class="mc-rank">下忍</div>
+      <div class="mc-name">Genin</div>
+      <div class="mc-desc">Famous heroes, legendary villains & Akatsuki. Everyone knows them.</div>
+      <div class="mc-count" id="btnEasy">50 QUESTIONS</div>
+    </button>
+    <button class="mode-card" data-mode="medium" data-kanji="中" type="button">
+      <span class="mc-emoji">🔥</span>
+      <div class="mc-rank">中忍</div>
+      <div class="mc-name">Chunin</div>
+      <div class="mc-desc">Supporting cast, village ninjas & Shippuden characters.</div>
+      <div class="mc-count" id="btnMed">50 QUESTIONS</div>
+    </button>
+    <button class="mode-card" data-mode="hard" data-kanji="上" type="button">
+      <span class="mc-emoji">⚡</span>
+      <div class="mc-rank">上忍</div>
+      <div class="mc-name">Jonin</div>
+      <div class="mc-desc">Boruto era, Otsutsuki, minor characters & deep cuts.</div>
+      <div class="mc-count" id="btnHard">50 QUESTIONS</div>
+    </button>
+  </div>
+
+  <div class="rules-box">
+    🍃 A ninja portrait appears — pick the correct name from <b>4 choices</b>.<br>
+    You have <b>8 seconds ⏱</b> per question · <b>50 questions</b> per round.<br>
+    Press <b>1–4</b> to answer with keyboard.
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="sQuiz" class="screen">
+  <div class="quiz-top">
+    <div class="q-chip">Q <b id="qNum">1</b> / <span id="qTotal">50</span></div>
+    <div class="q-chip sc-chip">★ <span id="qScore">0</span></div>
+    <div class="q-chip diff-chip" id="diffChip">GENIN</div>
+    <button class="quit-btn" id="quitBtn">✕ Quit</button>
+  </div>
+  <div class="prog-wrap"><div class="prog-fill" id="pFill"></div></div>
+
+  <div class="char-card">
+    <div class="card-lbl">🍃 Identify the Ninja 🍃</div>
+    <div class="portrait">
+      <div class="portrait-outer">
+        <div class="portrait-inner">
+          <img id="nImg" class="nimg hide" alt="Ninja"/>
+          <div class="spin" id="spinner"></div>
+        </div>
+      </div>
+    </div>
+    <div class="q-txt">Who is this ninja?</div>
+  </div>
+
+  <div class="timer">
+    <div class="t-fill" id="tFill"></div>
+    <div class="t-txt">⏱ <span id="tTxt">8</span>s</div>
+  </div>
+
+  <div class="opts" id="optsGrid">
+    <button class="opt" data-idx="0" data-k="1" type="button"></button>
+    <button class="opt" data-idx="1" data-k="2" type="button"></button>
+    <button class="opt" data-idx="2" data-k="3" type="button"></button>
+    <button class="opt" data-idx="3" data-k="4" type="button"></button>
+  </div>
+</section>
+
+<!-- RESULT -->
+<section id="sResult" class="screen">
+  <div class="res-wrap">
+    <div class="res-card">
+      <div class="res-title">🍃 Mission Complete 🍃</div>
+      <div class="res-badge" id="gBadge">S</div>
+      <div class="res-rank" id="gRank">Hokage Level!</div>
+      <div class="res-score"><em id="rScore">0</em> / <span id="rTotal">50</span></div>
+      <div class="res-pct" id="rPct">0% accuracy</div>
+      <div class="res-btns">
+        <button class="rb rb-p" id="btnAgain">🔁 Play Again</button>
+        <button class="rb rb-s" id="btnHome">🏠 Home</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<!-- FOOTER -->
+<div class="page-footer">
+  <span class="footer-leaf">🍃</span>
+  <div class="footer-txt">Made by <b>Alakshit Pradhan</b></div>
+  <span class="footer-leaf">🍃</span>
+</div>
+
+<script>
+// ================================================================
+// NARUTO QUIZ
+// • Home opens INSTANTLY — no fetch on startup
+// • Click Genin/Chunin/Jonin → fetch 50 chars for that mode only
+// • ~1-2 sec load per mode, shown on the card itself
+// ================================================================
+
+const DB = { easy:[], medium:[], hard:[] };
+
+// Each mode fetches from a specific anime sorted by popularity
+// Easy   → Naruto Part 1 (most famous characters)
+// Medium → Naruto Shippuden
+// Hard   → Boruto (newer, less known)
+const MODE_SOURCE = {
+  easy:   [20, 1735],   // Naruto + Shippuden top chars
+  medium: [1735, 20],   // Shippuden first, then fill from Naruto
+  hard:   [34566, 1735] // Boruto first, then Shippuden deep cuts
+};
+const MODE_PAGE = {
+  easy:   [1, 2],  // pages 1-2 of source
+  medium: [3, 4],  // pages 3-4 = less famous chars
+  hard:   [1, 3]   // Boruto page 1, Shippuden page 5+
+};
+
+async function fetchForMode(mode) {
+  const chars = [];
+  const seen  = new Set();
+
+  // Each mode: fetch up to 2 different pages from 2 animes
+  const animes = mode === 'easy'   ? [{id:20,page:1},{id:1735,page:1},{id:20,page:2}]
+               : mode === 'medium' ? [{id:1735,page:2},{id:20,page:3},{id:1735,page:3}]
+               :                     [{id:34566,page:1},{id:1735,page:4},{id:34566,page:2}];
+
+  for (const {id, page} of animes) {
+    if (chars.length >= 60) break;
+    try {
+      const res = await fetch('https://graphql.anilist.co', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body: JSON.stringify({
+          query:`{ Media(id:${id},type:ANIME){
+            characters(page:${page},perPage:25,sort:FAVOURITES_DESC){
+              nodes{ id name{ full } image{ medium } }
+            }
+          }}`
+        })
+      });
+      const json = await res.json();
+      const nodes = json?.data?.Media?.characters?.nodes || [];
+      for (const n of nodes) {
+        if (!n.id || seen.has(n.id)) continue;
+        const img = n.image?.medium;
+        if (!img || img.includes('default') || img.includes('no_image')) continue;
+        seen.add(n.id);
+        chars.push({ id:n.id, name:n.name?.full||'?', img });
+      }
+    } catch(e) { /* silently skip on error */ }
+  }
+  return chars;
+}
+
+// ── Placeholder for failed images ──
+function ph(name) {
+  const i  = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const pal= ['E8520A','27ae60','8e44ad','1565C0','00838f','6a1b9a'];
+  const c  = '%23' + pal[name.charCodeAt(0) % pal.length];
+  const en = encodeURIComponent(name.split(' ')[0]);
+  return `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='200' height='200' fill='%23FFF8F0'/><circle cx='100' cy='82' r='55' fill='${c}' opacity='.15'/><circle cx='100' cy='82' r='36' fill='${c}' opacity='.7'/><text x='100' y='95' text-anchor='middle' font-family='Georgia' font-size='30' font-weight='bold' fill='%23fff'>${i}</text><text x='100' y='168' text-anchor='middle' font-family='Georgia' font-size='12' fill='${c}'>${en}</text></svg>`;
+}
+
+// ── GAME ENGINE ──────────────────────────────────────────────
+const TQ=50, TS=8;
+const st={mode:null,pool:[],all:[],cur:0,score:0,locked:false,ci:-1,th:null,ts:0,tok:0};
+const $=id=>document.getElementById(id);
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=0|Math.random()*(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');scrollTo({top:0,behavior:'instant'})}
+
+function sTimer(){clearT();st.ts=performance.now();updT(TS);st.th=setInterval(tick,50)}
+function tick(){if(st.locked){clearT();return}const r=Math.max(0,TS-(performance.now()-st.ts)/1e3);updT(r);if(r<=0){clearT();tmout()}}
+function updT(r){const f=$('tFill'),t=$('tTxt');if(!f)return;f.style.width=(r/TS*100)+'%';t.textContent=Math.ceil(r)||0;f.classList.toggle('warn',r<=TS*.6&&r>TS*.3);f.classList.toggle('danger',r>0&&r<=TS*.3)}
+function clearT(){if(st.th){clearInterval(st.th);st.th=null}}
+function tmout(){if(st.locked)return;st.locked=true;updT(0);const bs=document.querySelectorAll('#optsGrid .opt');bs.forEach(b=>b.disabled=true);if(st.ci>=0&&bs[st.ci])bs[st.ci].classList.add('cor');setTimeout(()=>{st.cur++;nxt()},1400)}
+
+async function startQ(mode) {
+  // Show loading state on the clicked card
+  const cards = document.querySelectorAll('.mode-card');
+  cards.forEach(c => { c.disabled = true; c.style.opacity = '0.5'; });
+  const clicked = document.querySelector(`.mode-card[data-mode="${mode}"]`);
+  const origBtn = clicked.querySelector('.mc-count').textContent;
+  clicked.style.opacity = '1';
+  clicked.querySelector('.mc-count').textContent = '⏳ Loading...';
+
+  // Fetch characters for this mode only (1-2 sec)
+  let chars = DB[mode];
+  if (!chars || chars.length < 4) {
+    chars = await fetchForMode(mode);
+    DB[mode] = chars;
+  }
+
+  // Restore cards
+  cards.forEach(c => { c.disabled = false; c.style.opacity = '1'; });
+  clicked.querySelector('.mc-count').textContent = origBtn;
+
+  if (chars.length < 4) {
+    alert('Could not load characters. Check your internet and try again!');
+    return;
+  }
+
+  st.mode = mode;
+  st.all  = chars;
+  st.pool = shuf(chars.slice()).slice(0, Math.min(TQ, chars.length));
+  st.cur  = 0; st.score = 0; st.locked = false;
+  $('qTotal').textContent = st.pool.length;
+  $('rTotal').textContent = st.pool.length;
+  const labels = { easy:'GENIN', medium:'CHUNIN', hard:'JONIN' };
+  const chip = $('diffChip');
+  chip.textContent = labels[mode];
+  chip.className   = `q-chip diff-chip diff-${mode}`;
+  hud(); show('sQuiz'); nxt();
+}
+
+function hud(){$('qNum').textContent=Math.min(st.cur+1,st.pool.length);$('qScore').textContent=st.score;$('pFill').style.width=(st.cur/st.pool.length*100)+'%'}
+
+function nxt(){
+  if(st.cur>=st.pool.length){finish();return}
+  st.locked=false;
+  const c=st.pool[st.cur];
+  const decoys=shuf(st.all.filter(x=>x.id!==c.id)).slice(0,3);
+  const opts=shuf([c,...decoys]);
+  st.ci=opts.findIndex(o=>o.id===c.id);
+  document.querySelectorAll('#optsGrid .opt').forEach((b,i)=>{b.textContent=opts[i].name;b.disabled=false;b.classList.remove('cor','wrg')});
+  clearT();updT(TS);
+  const img=$('nImg'),sp=$('spinner');
+  img.classList.add('hide');img.classList.remove('show');sp.classList.remove('off');
+  st.tok++;const tok=st.tok;
+  if(st.cur+1<st.pool.length)new Image().src=st.pool[st.cur+1].img;
+  const p=new Image();
+  const go=src=>{if(tok!==st.tok)return;img.src=src;img.classList.remove('hide');img.classList.add('show');sp.classList.add('off');sTimer()};
+  p.onload=()=>go(c.img);p.onerror=()=>go(ph(c.name));p.src=c.img;
+  hud();
+}
+
+function pick(i){
+  if(st.locked)return;clearT();st.locked=true;
+  const bs=document.querySelectorAll('#optsGrid .opt');
+  bs.forEach(b=>b.disabled=true);
+  const ok=i===st.ci;
+  bs[i].classList.add(ok?'cor':'wrg');
+  if(!ok)bs[st.ci].classList.add('cor');
+  if(ok)st.score++;hud();
+  setTimeout(()=>{st.cur++;nxt();},ok?800:1100);
+}
+
+function finish(){
+  clearT();const p=Math.round(st.score/st.pool.length*100);
+  $('rScore').textContent=st.score;$('rPct').textContent=p+'% accuracy';
+  const G=p>=95?['S','🔥 Hokage Level!']:p>=85?['A','⚡ Elite Jōnin!']:p>=70?['B','✊ Solid Chūnin!']:p>=55?['C','🌿 Decent Genin']:p>=40?['D','😅 Keep Training...']:['F','💀 Back to Academy!'];
+  $('gBadge').textContent=G[0];$('gRank').textContent=G[1];show('sResult');
+}
+
+$('modesGrid').addEventListener('click',e=>{const c=e.target.closest('.mode-card');if(c&&!c.disabled)startQ(c.dataset.mode)});
+$('optsGrid').addEventListener('click',e=>{const b=e.target.closest('.opt');if(b)pick(+b.dataset.idx)});
+$('quitBtn').addEventListener('click',()=>{clearT();show('sHome')});
+$('btnAgain').addEventListener('click',()=>startQ(st.mode));
+$('btnHome').addEventListener('click',()=>show('sHome'));
+document.addEventListener('keydown',e=>{
+  if(!$('sQuiz').classList.contains('active'))return;
+  const k=+e.key;if(k>=1&&k<=4){const b=document.querySelector(`#optsGrid .opt[data-idx="${k-1}"]`);if(b&&!b.disabled)pick(k-1)}
+});
+</script>
+</body>
+</html>
